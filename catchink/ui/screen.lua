@@ -302,7 +302,7 @@ function Screen:captures_file(id)
     return self.settings_dir .. "/catchink_profile_" .. id .. ".lua"
 end
 
--- Version 0.1.0 kept them in <data folder>/catchink. They move once, with KOReader's .old backup.
+-- Builds from before the first release kept them in <data folder>/catchink. They move once, with KOReader's .old backup.
 function Screen:move_legacy_captures(id)
     local old = self.home_dir .. "/profile_" .. id .. ".lua"
     local new = self:captures_file(id)
@@ -314,7 +314,7 @@ function Screen:move_legacy_captures(id)
     end
 end
 
--- Removes a profile's captures, also where 0.1.0 kept them, and the .old backup that KOReader would read
+-- Removes a profile's captures, also where the builds before the first release kept them, and the .old backup that KOReader would read
 -- when the file is missing.
 function Screen:remove_captures(id)
     SavedState.remove_file(self:captures_file(id))

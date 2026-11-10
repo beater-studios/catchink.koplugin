@@ -4,8 +4,7 @@ How the plugin works inside, for anyone who wants to understand the code or chan
 
 ## Status
 
-- **0.2.0 (2026-11-10, not published):** the shared patterns of the plugins of Beater Studios (sleep screen cover, portrait, refresh counter, pause while asleep, awake, HTTPS, saved state, texts, letters, data validation, emulator scripts, random touches, packaging and CI), the catches moved to the settings folder and a fix for dialogs hidden under the plugin. Tested in the desktop emulator.
-- **0.1.0 (2026-11-09):** profiles with models (normal, shiny, alpha, Living Dex, custom), 27 games with their regional Pokédex (DLCs listed under their game), the national view, boxes of 30 and a list, filters and search, a six-page card, progress, sprite sets downloaded on the device, and the interface in Portuguese, English and Spanish. Tested in the desktop emulator.
+- **0.1.0 (not published):** profiles with models (normal, shiny, alpha, Living Dex, custom), 27 games with their regional Pokédex (DLCs listed under their game), the national view, boxes of 30 and a list, filters and search, a six-page card, progress, sprite sets downloaded on the device, and the interface in Portuguese, English and Spanish. Since 2026-11-10 it also has the shared patterns of the plugins of Beater Studios (sleep screen cover, portrait, refresh counter, pause while asleep, awake, HTTPS, saved state, texts, letters, data validation, emulator scripts, random touches, packaging and CI). Tested in the desktop emulator; a build from before the patterns runs on the author's Kindle.
 
 ## Data
 
@@ -54,8 +53,8 @@ The sprites are copyright The Pokémon Company. `tools/package.sh` builds three 
 
 - **Entries** (`dex.lua`): one thing to catch. Keys are `25` for a species, `25_m` and `25_f` for its genders, `25:alola` for a form. The gender mode of the profile splits species: "simple" never, "by looks" those with gender differences, "complete" every species with both sexes. When the profile counts forms, each game lists the forms it has (`index.game_forms`) and the national view all of them, only those kept outside battle (no Mega Evolution, Gigantamax or battle forms). On a card, a form the game does not have says so. A game's Pokédex joins its lists (Kalos has three) with growing numbers, each species once.
 - **Captures** (`profiles.lua`): per profile and game, `{ s = "c" | "s" | "u", t = time, n = note }`. A gendered key falls back on its species, and a species counts as caught when both genders are, so changing the gender mode keeps the progress. The national state joins every game of the profile and `home`, where catches marked straight on the national view go. A tap marks caught or clears (keeping the note), with undo. Unavailable entries leave the total.
-- **Profiles:** the list and the settings in `koreader/settings/catchink.lua` (`version`, `lang`, `profiles`, `banner_off`, `last_profile_id`); the captures of each profile in `koreader/settings/catchink_profile_<id>.lua` (`version`, `captures`), written after each change. Version 0.1.0 kept the captures in `koreader/catchink/profile_<id>.lua`; they move, with KOReader's `.old` backup, when the screen opens. Ids are never handed out again (`last_profile_id`, never below an id in use), and deleting a profile removes its file and the `.old` backup (`SavedState.remove_file`), because KOReader reads that backup when the file is missing. A duplicate gets its own copies of filters and sprite choices.
-- **Reading a save** (`state.lua`, plain Lua, with the saved state pattern): the language through `one_of`; each profile on its own through `SavedState.restore` and `Profiles.valid`, so one that breaks is left out with a warning and the others open; a model or gender mode that no longer exists falls back, and games and sprite sets that left the content leave. Repeated ids keep the first. Captures go through `Captures.new`, which keeps only well-formed records. `version` is 1; a file without it is read as 1. `tests/state_spec.lua` has the five tests of the pattern, with a real save of 0.1.0 in `tests/saves/0.1.0/`, made in the emulator with that version's code.
+- **Profiles:** the list and the settings in `koreader/settings/catchink.lua` (`version`, `lang`, `profiles`, `banner_off`, `last_profile_id`); the captures of each profile in `koreader/settings/catchink_profile_<id>.lua` (`version`, `captures`), written after each change. Builds of 0.1.0 from before 2026-11-10 kept the captures in `koreader/catchink/profile_<id>.lua`; they move, with KOReader's `.old` backup, when the screen opens. Ids are never handed out again (`last_profile_id`, never below an id in use), and deleting a profile removes its file and the `.old` backup (`SavedState.remove_file`), because KOReader reads that backup when the file is missing. A duplicate gets its own copies of filters and sprite choices.
+- **Reading a save** (`state.lua`, plain Lua, with the saved state pattern): the language through `one_of`; each profile on its own through `SavedState.restore` and `Profiles.valid`, so one that breaks is left out with a warning and the others open; a model or gender mode that no longer exists falls back, and games and sprite sets that left the content leave. Repeated ids keep the first. Captures go through `Captures.new`, which keeps only well-formed records. `version` is 1; a file without it is read as 1. `tests/state_spec.lua` has the five tests of the pattern, with a real save in `tests/saves/0.1.0/`, made in the emulator with the code of 0.1.0 from before 2026-11-10 (the build on the author's Kindle).
 - **Setting a state** (`Captures:apply`): a gender caught through its species splits the species into its two genders first, so changing one keeps the other; a species shown through its genders replaces them. Taps and the card's selector both go through it, and the undo puts back every key it touched. Sprites in `koreader/catchink/sprites/`.
 
 ## Code
@@ -85,7 +84,7 @@ The screen is drawn straight into the blitbuffer and marks its touch areas as it
 - **Portrait** (`portrait.lua`): the screen opens in portrait, ignores rotation and gives the previous rotation back on close; the opening (`setup_screen`) runs inside `Portrait.open`, so a failure gives the rotation back. The menu opens the screen with `pcall` and shows `open_failed` in the reader's language. A view that fails to draw is replaced by `draw_failed` and a tap goes back to the first view.
 - **While the device sleeps** (`sleep.lua`): `Sleep.watch` in the surface; the toast and the download tick are scheduled with `Sleep.schedule` and the screen paints through `Sleep.dirty`, so nothing is drawn and no timer runs between `Suspend` and the sleep screen going away. On 2026-11-09 a toast timer ran on a system wakeup during sleep and painted the plugin over the sleep screen, so the device looked awake with the touch blocked (KOReader inhibits input while suspended); this pattern came from that fix.
 - **Back key:** on devices with keys it goes back one view, and closes the plugin from the first one. `Close` (KOReader quitting) closes the screen, so everything above runs.
-- **The toast** is kept in `notice`, never in `toast`: UIManager takes a window with a `toast` field for one of its own toasts and puts every dialog opened meanwhile under it. In 0.1.0 a menu opened in the 5 seconds after marking a Pokémon showed under the plugin.
+- **The toast** is kept in `notice`, never in `toast`: UIManager takes a window with a `toast` field for one of its own toasts and puts every dialog opened meanwhile under it. Before 2026-11-10, a menu opened in the 5 seconds after marking a Pokémon showed under the plugin.
 
 ## Hand-written data
 
@@ -111,7 +110,7 @@ The sources of `data/` follow the data sources pattern:
 sh tools/check.sh                     # everything below that runs without KOReader, as the CI does
 sh tools/check.sh release             # also downloads the sources and builds data/ again, as the release does
 luajit tests/catchink_spec.lua        # data, entries, captures, filters, texts, sprite choice, downloader
-luajit tests/state_spec.lua           # saves read back, broken and from 0.1.0
+luajit tests/state_spec.lua           # saves read back, broken and from an older build
 luajit tools/check_texts.lua t        # the three languages have the same keys and markers, no dashes, no brand of e-reader
 luajit tools/validate.lua             # the hand-written games and sprite sets
 sh tools/package.sh                   # the three packages in dist/
@@ -134,11 +133,22 @@ CATCHINK_HOME=/tmp/catchink SETS="red-blue@normal base@normal" tools/koreader/ru
 CATCHINK_HOME=/tmp/catchink OUTPUT_DIR=/tmp/shots tools/koreader/run_headless.sh tools/koreader/render_screens.lua [w h dpi]
 ```
 
-- `check_layout.lua` opens every view in the three languages (cards of four Pokémon in all six pages, a toast over a box) and fails on a view that does not draw, a text or touch area off the screen, or a text of the interface cut for not fitting; names, places and other data may be cut on purpose and are only counted. It also checks the version on the About view, the Back key, profiles read again by a new screen, the save of 0.1.0 opened by the screen (with the catches moving), the refresh modes and a view that fails to draw.
+- `check_layout.lua` opens every view in the three languages (cards of four Pokémon in all six pages, a toast over a box) and fails on a view that does not draw, a text or touch area off the screen, or a text of the interface cut for not fitting; names, places and other data may be cut on purpose and are only counted. It also checks the version on the About view, the Back key, profiles read again by a new screen, the save of the older build opened by the screen (with the catches moving), the refresh modes and a view that fails to draw.
 - `fuzz_ui.lua` has one run per view (home, games, boxes, list, national, card, filters, profile form, progress, sprites, About), in the three languages for home, boxes and card, each from nothing saved; when a run wanders off its view, it goes back to it. Downloads are off. Its first run found the dialogs hidden under the plugin.
-- `check_download.lua` downloads real sets through the plugin's downloader; `render_screens.lua` saves PNGs of every view with sample catches.
+- `check_download.lua` downloads real sets through the plugin's downloader; `render_screens.lua` saves PNGs of every view with sample catches, at a fixed date so they are the same every time.
+- `readme_screens.sh` (with `CATCHINK_HOME` holding the Red / Blue set) copies four of them to `docs/screenshots` in English and `docs/screenshots/pt` in Portuguese, for the two READMEs; `tools/make_brand_art.py` then draws the icon and the banner (`docs/brand`) and the GitHub social preview (`docs/social-preview.png`) from two of those screenshots.
 
 The other files of `tools/koreader/` and `tools/package_lib.sh`, `tools/check_texts.lua` and `tools/data_check.lua` are copies of the shared patterns. The icon masks and the sleep screen cover come from `tools/make_assets.py` (`KOREADER_DIR` gives it KOReader's fonts).
+
+## How to publish a version
+
+1. Update `version` in `_meta.lua` and add the version section to `CHANGELOG.md`, as `## [1.2.3]`.
+2. Run `sh tools/check.sh release`, the emulator checks (`check_all_sizes.sh`, `fuzz_ui.lua`, `check_screensaver.lua`, `check_rotation.lua`, `check_sleep.lua`, `check_awake.lua` and `check_https.lua`) and test on a device, including the device checks of the awake, HTTPS and sleep patterns.
+3. If the version changes what is saved, save profiles and catches with the published version in the emulator and keep them in `tests/saves/<published version>/`.
+4. If the screens changed, make the README screenshots again (`readme_screens.sh`) and the brand art (`make_brand_art.py`).
+5. Publish the `v1.2.3` release on GitHub, creating the tag with it, after the push. The `release.yml` workflow checks the tag against `_meta.lua`, runs `tools/check.sh release` (tests, texts, the hand-written data, and `data/` built again from the sources and compared with the repository), builds the three packages and attaches every zip in `dist/` with its checksum. The CI runs `tools/check.sh` on every push.
+
+The repository on GitHub takes `docs/social-preview.png` as its social preview (Settings > General), by hand.
 
 ## Backlog
 

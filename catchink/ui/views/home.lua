@@ -19,14 +19,15 @@ function Home:pages()
     return math.max(1, math.ceil(#self.app.profiles / PER_PAGE))
 end
 
--- The species of a profile's latest catch, or one that fits the model.
+-- The species of a profile's latest catch, or one that fits the model. Catches in the same second (a whole
+-- evolution line marked at once) go to the lowest number, so the picture does not change between openings.
 local function latest_catch(app, profile)
     local best, when = nil, -1
     for _, records in pairs(app:caps(profile).caps) do
         for key, r in pairs(records) do
-            if r.s == "c" and r.t and r.t > when then
+            if r.s == "c" and r.t and r.t >= when then
                 local species = tonumber(key:match("^(%d+)"))
-                if species and app.data.species[species] then
+                if species and app.data.species[species] and (r.t > when or species < best) then
                     best, when = species, r.t
                 end
             end

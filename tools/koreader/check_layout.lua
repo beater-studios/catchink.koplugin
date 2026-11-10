@@ -1,7 +1,7 @@
 -- Opens every view in the three languages and checks the layout: no view fails to draw, no text or touch area
 -- leaves the screen, and no text of the interface is cut for being wider than its box (names, places and
 -- other data may be cut on purpose; they are only counted). Also checks the version on the About view, the
--- profiles and catches read again by a new screen, a save of 0.1.0 opened by the screen, the refresh modes,
+-- profiles and catches read again by a new screen, a save of a build from before the first release opened by the screen, the refresh modes,
 -- the Back key and a view that fails to draw.
 -- Run with tools/koreader/check_all_sizes.sh (four screen sizes) or tools/koreader/run_headless.sh.
 local plugin_dir = assert(os.getenv("PLUGIN_DIR"))
@@ -227,24 +227,25 @@ elseif reopened:caps(p):state("red-blue", "25") ~= "c" or reopened:caps(p):recor
 end
 UIManager:close(reopened)
 
--- A save of 0.1.0, with the catches where that version kept them: they move to the settings folder.
+-- A save of a build from before the first release (tests/saves/0.1.0), with the catches where it kept them:
+-- they move to the settings folder.
 clean()
 os.execute("mkdir -p '" .. home_dir .. "'")
 os.execute("cp '" .. plugin_dir .. "/tests/saves/0.1.0/catchink.lua' '" .. settings_dir .. "/catchink.lua'")
 os.execute("cp '" .. plugin_dir .. "/tests/saves/0.1.0/'profile_p*.lua '" .. home_dir .. "/'")
 local old = open()
 if #old.profiles ~= 3 or old.lang ~= "es" then
-    problem("the save of 0.1.0 did not open with its three profiles in Spanish")
+    problem("the older save did not open with its three profiles in Spanish")
 else
     local p1 = old.profiles[1]
     if old:caps(p1):record("red-blue", "25").n ~= "Viridian Forest" then
-        problem("the catches of 0.1.0 were not read")
+        problem("the older catches were not read")
     end
     if lfs.attributes(home_dir .. "/profile_p1.lua", "mode") or not lfs.attributes(settings_dir .. "/catchink_profile_p1.lua", "mode") then
-        problem("the catches of 0.1.0 did not move to the settings folder")
+        problem("the older catches did not move to the settings folder")
     end
     old:show("browse", { profile = p1, game = "red-blue" })
-    check_view(old, "save_0.1.0_box")
+    check_view(old, "older_save_box")
 end
 UIManager:close(old)
 

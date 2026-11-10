@@ -126,7 +126,8 @@ test("a profile that breaks while read is left out with a warning", function()
     eq(#warnings, before + 1)
 end)
 
-test("the save of 0.1.0 opens with everything in it", function()
+-- tests/saves/0.1.0 was made by 0.1.0 as it was before 2026-11-10, with the catches in another folder.
+test("an older save opens with everything in it", function()
     local dir = "tests/saves/0.1.0/"
     local saved = State.settings(reader(load_save(dir .. "catchink.lua")), "en", warn)
     eq(saved.lang, "es")

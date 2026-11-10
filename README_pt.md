@@ -1,11 +1,24 @@
 <p align="center">
+  <img src="docs/brand/banner.png" alt="CatchInk: um registrador de Pokédex para e-ink">
+</p>
+
+<p align="center">
   <strong>Um registrador de Pokédex no KOReader, feito para e-ink. Em português, inglês e espanhol.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/beater-studios/catchink.koplugin/releases/latest"><img src="https://img.shields.io/github/v/release/beater-studios/catchink.koplugin?style=flat-square&color=111111&label=release" alt="Última release"></a>
+  <a href="https://github.com/beater-studios/catchink.koplugin/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/beater-studios/catchink.koplugin/ci.yml?branch=main&style=flat-square&label=tests" alt="Testes"></a>
+  <a href="https://koreader.rocks"><img src="https://img.shields.io/badge/KOReader-2026.07-111111?style=flat-square" alt="Feito para o KOReader 2026.07"></a>
+  <img src="https://img.shields.io/badge/languages-EN%20%C2%B7%20PT%20%C2%B7%20ES-111111?style=flat-square" alt="Inglês, português e espanhol">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-111111?style=flat-square" alt="Licença: GPL-3.0"></a>
 </p>
 
 <p align="center">
   <a href="#o-que-faz">O que faz</a> ·
   <a href="#instalação">Instalação</a> ·
   <a href="#como-usar">Como usar</a> ·
+  <a href="#desenvolvimento">Desenvolvimento</a> ·
   <a href="README.md">Read in English</a>
 </p>
 
@@ -13,10 +26,10 @@
 
 <table>
   <tr>
-    <td width="25%" align="center"><img src="docs/screenshots/box.png" alt="Uma caixa de 30 de Red e Blue, com capturados, vistos e faltando"><br><sub><b>Caixas como nos jogos</b></sub></td>
-    <td width="25%" align="center"><img src="docs/screenshots/card.png" alt="A ficha do Bulbasaur com sprite, tipos, descrição e data da captura"><br><sub><b>Uma ficha para cada Pokémon</b></sub></td>
-    <td width="25%" align="center"><img src="docs/screenshots/evolution.png" alt="A cadeia evolutiva do Eevee com a condição de cada ramo"><br><sub><b>Evoluções com condições</b></sub></td>
-    <td width="25%" align="center"><img src="docs/screenshots/profiles.png" alt="Quatro perfis: normal, shiny, alfa e Living Dex"><br><sub><b>Várias Pokédex ao mesmo tempo</b></sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/pt/box.png" alt="Uma caixa de 30 de Red e Blue, com capturados, vistos e faltando"><br><sub><b>Caixas como nos jogos</b></sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/pt/card.png" alt="A ficha do Bulbasaur com sprite, tipos, descrição e data da captura"><br><sub><b>Uma ficha para cada Pokémon</b></sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/pt/evolution.png" alt="A cadeia evolutiva do Eevee com a condição de cada ramo"><br><sub><b>Evoluções com condições</b></sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/pt/profiles.png" alt="Quatro perfis: normal, shiny, alfa e Living Dex"><br><sub><b>Várias Pokédex ao mesmo tempo</b></sub></td>
   </tr>
 </table>
 
@@ -48,7 +61,7 @@ Marque os Pokémon que você pegou em cada jogo, numa tela que fica horas ao lad
 3. Reinicie o KOReader. O plugin fica em **Ferramentas > CatchInk**.
 4. Para usar as sprites de cada jogo, ou os conjuntos que o seu pacote não traz, abra **Sprites** no menu da tela inicial e baixe pelo Wi-Fi.
 
-A soma de verificação de cada pacote está no arquivo `.sha256` dele. Os perfis ficam em `koreader/settings/catchink.lua`, as capturas de cada perfil em `koreader/settings/catchink_profile_<id>.lua` (a versão 0.1.0 as guardava em `koreader/catchink/`, e elas mudam de lugar na primeira abertura) e as sprites em `koreader/catchink/sprites/`. Para desinstalar, apague `koreader/plugins/catchink.koplugin/`, os arquivos `catchink*.lua` de `koreader/settings/` e a pasta `koreader/catchink/`.
+A soma de verificação de cada pacote está no arquivo `.sha256` dele. Os perfis ficam em `koreader/settings/catchink.lua`, as capturas de cada perfil em `koreader/settings/catchink_profile_<id>.lua` e as sprites em `koreader/catchink/sprites/`. Para desinstalar, apague `koreader/plugins/catchink.koplugin/`, os arquivos `catchink*.lua` de `koreader/settings/` e a pasta `koreader/catchink/`.
 
 ## Como usar
 
@@ -59,10 +72,35 @@ A soma de verificação de cada pacote está no arquivo `.sha256` dele. Os perfi
 5. **Filtros, busca e progresso** ficam na barra de baixo. Toque num filtro do alto para tirar.
 6. **Sprites:** o botão de imagem no alto de um jogo escolhe o conjunto dele. A tela Sprites baixa, continua e apaga conjuntos. Os downloads correm com o plugin aberto, e o aparelho fica acordado enquanto isso.
 
-## Créditos e licença
+## Compatibilidade
 
-Dados: [PokeAPI](https://pokeapi.co/), [PKHeX](https://github.com/kwsch/PKHeX) para os encontros dos jogos mais novos e as formas de cada jogo, e [Serebii.net](https://www.serebii.net/pokearth/sinnoh/) para as chances de encontro de Brilliant Diamond e Shining Pearl. Sprites: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (o conjunto base vem no plugin, os outros são baixados no seu aparelho); as imagens são © The Pokémon Company. Textos em português traduzidos pela Beater Studios.
+- Feito para o KOReader 2026.07 e para telas de toque, sempre em retrato. Foi desenvolvido para um Kindle básico de 10ª geração (firmware 5.18.1).
+- Layout conferido no emulador em 600x800, 758x1024, 1072x1448 e 1264x1680.
+- Usa só o que vem com o KOReader, sem nada para instalar à parte. Os dados vêm dentro do plugin, então só o download das sprites precisa de Wi-Fi.
 
-O CatchInk é um projeto não oficial, feito por fãs. Não é afiliado, endossado nem patrocinado pela Nintendo, Game Freak, Creatures Inc. ou The Pokémon Company. Pokémon e os nomes relacionados são marcas dos seus donos.
+## Desenvolvimento
 
-GPL-3.0-only. Veja [LICENSE](LICENSE) e [NOTICE](NOTICE).
+Com o [LuaJIT](https://luajit.org) instalado, da raiz do repositório, as mesmas conferências da CI:
+
+```sh
+sh tools/check.sh           # testes, textos, os dados escritos à mão e os três pacotes
+sh tools/check.sh release   # também baixa as fontes dos dados em commits fixos e gera data/ de novo, como a release
+```
+
+As verificações no KOReader de computador, as ferramentas que geram os dados e as imagens e a organização do código estão no [README em inglês](README.md#development) e em [docs/design.md](docs/design.md). Contribuições são aceitas sob a licença do projeto.
+
+## Créditos
+
+Dados: [PokeAPI](https://pokeapi.co/), [PKHeX](https://github.com/kwsch/PKHeX) para os encontros dos jogos mais novos e as formas de cada jogo, e [Serebii.net](https://www.serebii.net/pokearth/sinnoh/) para as chances de encontro de Brilliant Diamond e Shining Pearl. Sprites: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (o conjunto base vem no plugin, os outros são baixados no seu aparelho). Textos em português traduzidos pela Beater Studios.
+
+## Licença
+
+O código está sob a [GPL-3.0](LICENSE), somente a versão 3. Você pode usar, estudar, modificar e redistribuir, mantendo-o aberto sob a mesma licença. Esta licença não dá direito aos nomes "CatchInk" e "Beater Studios". Veja o [NOTICE](NOTICE).
+
+Pokémon e os nomes relacionados são marcas da Nintendo, Creatures Inc. e GAME FREAK inc., e as sprites são © The Pokémon Company. O CatchInk é um projeto não oficial, feito por fãs, sem endosso, patrocínio ou ligação com essas empresas.
+
+---
+
+<p align="center">
+  <sub>Feito pela <a href="https://beaterstudios.com/">Beater Studios</a></sub>
+</p>

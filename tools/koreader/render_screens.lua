@@ -11,6 +11,9 @@ G_defaults = require("luadefaults"):open()
 G_reader_settings = require("luasettings"):open(DataStorage:getDataDir() .. "/settings.reader.lua")
 G_reader_settings:saveSetting("language", lang)
 package.path = plugin_dir .. "/?.lua;" .. package.path
+-- A fixed date, so the screenshots are the same every time they are made.
+local real_time = os.time
+os.time = function(date) return real_time(date or { year = 2026, month = 11, day = 10, hour = 14, min = 32 }) end
 
 local Device = require("device")
 require("document/canvascontext"):init(Device)
@@ -110,14 +113,15 @@ shot("04_games_page2")
 
 local rb = screen:show("browse", { profile = main, game = "red-blue" })
 shot("05_box_red_blue")
--- Asleep, a mark (or a timer) must not draw over the sleep screen; waking up draws what changed.
+-- Asleep, a mark (or a timer) must not draw over the sleep screen; waking up draws what changed. The sleep pattern
+-- has its own check (check_sleep.lua); this only goes through it once with the real screen.
 local Event = require("ui/event")
+local Sleep = require("catchink/sleep")
 UIManager:broadcastEvent(Event:new("Suspend"))
-assert(screen.sleeping, "the screen knows the device sleeps")
+assert(Sleep.asleep(screen), "the screen knows the device sleeps")
 screen:redraw()
-assert(screen.redraw_pending, "nothing is drawn while asleep")
 UIManager:broadcastEvent(Event:new("Resume"))
-assert(not screen.sleeping and not screen.redraw_pending, "waking up draws again")
+assert(not Sleep.asleep(screen), "the screen knows the device woke up")
 local cell = rb.list[27]
 screen:toggle(main, "red-blue", cell)
 shot("05_box_red_blue_toast")

@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="docs/brand/banner.png" alt="CatchInk: a Pokédex tracker for e-ink">
+</p>
+
+<p align="center">
   <strong>A Pokédex tracker for KOReader, made for e-ink. In Portuguese, English and Spanish.</strong>
 </p>
 
@@ -57,7 +61,7 @@ Mark the Pokémon you caught in each game, on a screen that sits next to the con
 3. Restart KOReader. The plugin is in **Tools > CatchInk**.
 4. To use each game's own sprites, or the sets your package does not bring, open **Sprites** in the menu of the home screen and download them over Wi-Fi.
 
-The checksum of each package is in its `.sha256` file. Profiles live in `koreader/settings/catchink.lua`, the catches of each profile in `koreader/settings/catchink_profile_<id>.lua` (version 0.1.0 kept them in `koreader/catchink/`, and they move on the first opening), sprites in `koreader/catchink/sprites/`. To uninstall, delete `koreader/plugins/catchink.koplugin/`, the `catchink*.lua` files of `koreader/settings/` and the folder `koreader/catchink/`.
+The checksum of each package is in its `.sha256` file. Profiles live in `koreader/settings/catchink.lua`, the catches of each profile in `koreader/settings/catchink_profile_<id>.lua`, sprites in `koreader/catchink/sprites/`. To uninstall, delete `koreader/plugins/catchink.koplugin/`, the `catchink*.lua` files of `koreader/settings/` and the folder `koreader/catchink/`.
 
 ## How to use
 
@@ -68,28 +72,45 @@ The checksum of each package is in its `.sha256` file. Profiles live in `koreade
 5. **Filters, search and progress** are in the bottom bar. Tap a filter chip to remove it.
 6. **Sprites:** the picture button at the top of a game chooses its set. The Sprites screen downloads, resumes and deletes sets. Downloads run while the plugin is open, and the device stays awake meanwhile.
 
+## Compatibility
+
+- Made for KOReader 2026.07 and for touchscreens, always in portrait. It was developed for a 10th generation basic Kindle (firmware 5.18.1).
+- Layout checked in the emulator at 600x800, 758x1024, 1072x1448 and 1264x1680.
+- Uses only what comes with KOReader, with nothing else to install. The data comes inside the plugin, so only sprite downloads need Wi-Fi.
+
 ## Development
 
+With [LuaJIT](https://luajit.org) installed, from the repository root, the same checks as the CI:
+
 ```sh
-sh tools/check.sh                # tests, texts, hand-written data and the three packages, as the CI does
+sh tools/check.sh           # tests, texts, the hand-written data and the three packages
+sh tools/check.sh release   # also downloads the data sources at fixed commits and builds data/ again, as the release does
 ```
 
 With the official KOReader for desktop, `KOREADER_DIR` pointing at the folder with `luajit` and `reader.lua`:
 
 ```sh
-tools/koreader/run_emulator.sh                                   # opens KOReader with the plugin, 600 x 800
-tools/koreader/check_all_sizes.sh                                # every view in four screen sizes
-tools/koreader/run_headless.sh tools/koreader/fuzz_ui.lua         # random taps through every view
-CATCHINK_HOME=/tmp/catchink tools/koreader/run_headless.sh tools/koreader/check_download.lua
-CATCHINK_HOME=/tmp/catchink OUTPUT_DIR=/tmp/shots tools/koreader/run_headless.sh tools/koreader/render_screens.lua
+tools/koreader/run_emulator.sh                                    # opens KOReader with the plugin, 600 x 800
+tools/koreader/check_all_sizes.sh                                 # every view in four screen sizes
+tools/koreader/run_headless.sh tools/koreader/fuzz_ui.lua         # random touches through every view
 ```
 
-The other checks in `tools/koreader/` (sleep screen, rotation, sleep, awake and HTTPS) are listed in [docs/design.md](docs/design.md#tests-and-tools). The data comes from `tools/build_data.py`, the icons and the sleep screen cover from `tools/make_assets.py`. How the code is organized and why is in [docs/design.md](docs/design.md).
+The other checks (`check_screensaver.lua`, `check_rotation.lua`, `check_sleep.lua`, `check_awake.lua`, `check_https.lua` and `check_download.lua`) run the same way and are listed in [docs/design.md](docs/design.md#tests-and-tools).
 
-## Credits and license
+The data comes from `tools/build_data.py`, with the sources from `tools/fetch_sources.sh`. The images in `assets/` come from `tools/make_assets.py`, the README screenshots from `tools/koreader/readme_screens.sh` and the banner, the icon and the social preview from `tools/make_brand_art.py` (Pillow). How the code is organized and why is in [docs/design.md](docs/design.md). Contributions are accepted under the project's license.
 
-Data: [PokeAPI](https://pokeapi.co/), [PKHeX](https://github.com/kwsch/PKHeX) for the encounters of the newer games and the forms of each game, and [Serebii.net](https://www.serebii.net/pokearth/sinnoh/) for the encounter chances of Brilliant Diamond and Shining Pearl. Sprites: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (the base set comes with the plugin, the others are downloaded to your device); the images are © The Pokémon Company. Portuguese texts translated by Beater Studios.
+## Credits
 
-CatchInk is an unofficial, fan-made project. It is not affiliated with, endorsed or sponsored by Nintendo, Game Freak, Creatures Inc. or The Pokémon Company. Pokémon and all related names are trademarks of their respective owners.
+Data: [PokeAPI](https://pokeapi.co/), [PKHeX](https://github.com/kwsch/PKHeX) for the encounters of the newer games and the forms of each game, and [Serebii.net](https://www.serebii.net/pokearth/sinnoh/) for the encounter chances of Brilliant Diamond and Shining Pearl. Sprites: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (the base set comes with the plugin, the others are downloaded to your device). Portuguese texts translated by Beater Studios.
 
-GPL-3.0-only. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+## License
+
+The code is under [GPL-3.0](LICENSE), version 3 only. You may use, study, modify and redistribute it, keeping it open under the same license. This license grants no rights to the names "CatchInk" and "Beater Studios". See [NOTICE](NOTICE).
+
+Pokémon and all related names are trademarks of Nintendo, Creatures Inc. and GAME FREAK inc., and the sprites are © The Pokémon Company. CatchInk is an unofficial, fan-made project, not endorsed by, sponsored by or affiliated with those companies.
+
+---
+
+<p align="center">
+  <sub>Made by <a href="https://beaterstudios.com/">Beater Studios</a></sub>
+</p>
