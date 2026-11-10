@@ -1,0 +1,11 @@
+CatchInk
+Copyright (C) 2026 Beater Studios
+https://github.com/beater-studios/catchink.koplugin
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License, version 3 only, as published by the Free Software Foundation. See LICENSE. It is distributed WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+CatchInk is an unofficial, fan-made project. It is not affiliated with, endorsed or sponsored by Nintendo, Game Freak, Creatures Inc. or The Pokémon Company. Pokémon and all related names are trademarks of their respective owners.
+
+The data in data/ is built from PokeAPI (https://pokeapi.co, https://github.com/PokeAPI/pokeapi, BSD-3-Clause). The encounters of Brilliant Diamond and Shining Pearl, Legends: Arceus, Scarlet and Violet and Legends: Z-A, and the forms each game from Sword and Shield on has, come from PKHeX (https://github.com/kwsch/PKHeX, GPL-3.0). The encounter chances of Brilliant Diamond and Shining Pearl come from Serebii.net's Pokéarth (https://www.serebii.net/pokearth/sinnoh/). The base sprite set (normal, and shiny in the larger package) in sprites/ comes from https://github.com/PokeAPI/sprites, and the plugin downloads the other sets to the device from the same repository; the images are copyright The Pokémon Company. The Alpha symbol in assets/icons/alpha.png is drawn from the symbol of the Legends games. The Portuguese texts in data/ were translated by Beater Studios.
+
+catchink/ui/draw.lua is adapted from Matkeeper (https://github.com/beater-studios/matkeeper.koplugin), by Beater Studios, GPL-3.0.

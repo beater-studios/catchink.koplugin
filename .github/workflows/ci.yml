@@ -1,0 +1,24 @@
+# Pattern "ci". This file is copied unchanged into every plugin as
+# .github/workflows/ci.yml: change the pattern first, then copy it again.
+# The checks of each plugin are in its tools/check.sh.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install LuaJIT, LuaFileSystem and zip
+        run: sudo apt-get update && sudo apt-get install -y luajit lua-filesystem zip
+      - name: Checks
+        run: sh tools/check.sh

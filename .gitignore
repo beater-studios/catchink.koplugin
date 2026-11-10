@@ -1,0 +1,7 @@
+build/
+.ko-home/
+dist/
+__pycache__/
+*.pyc
+.DS_Store
+tools/translations/work/
