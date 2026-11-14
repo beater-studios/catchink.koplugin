@@ -113,6 +113,15 @@ function Dex.types(data, entry)
     return data:types(entry.species)
 end
 
+-- The PokeAPI id of the Pokémon an entry shows: its species, or a form's own id (its sprite file name).
+function Dex.pokemon_id(data, entry)
+    if entry.form then
+        local f = data:form(entry.species, entry.form)
+        return f and tonumber(f[2]) or nil
+    end
+    return entry.species
+end
+
 -- The sprite file name (without extension) of an entry, and whether a female sprite is wanted.
 function Dex.sprite_stem(data, entry)
     if entry.form then

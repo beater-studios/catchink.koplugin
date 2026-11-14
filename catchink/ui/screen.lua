@@ -13,7 +13,7 @@ local logger = require("logger")
 local Awake = require("catchink/awake")
 local Data = require("catchink/data")
 local Dex = require("catchink/dex")
-local Downloader = require("catchink/net/downloader")
+local Downloader = require("catchink/download")
 local Draw = require("catchink/ui/draw")
 local Filters = require("catchink/filters")
 local Games = require("catchink/games")
@@ -27,6 +27,7 @@ local Sprites = require("catchink/sprites")
 local State = require("catchink/state")
 local Surface = require("catchink/ui/surface")
 local Text = require("catchink/text")
+local Types = require("catchink/types")
 
 local LANGUAGES = { { "pt", "Português" }, { "en", "English" }, { "es", "Español" } }
 local TOAST_SECONDS = 5
@@ -82,6 +83,7 @@ function Screen:setup_screen()
     }
     self.downloader = Downloader.new{
         work_dir = self.home_dir .. "/work",
+        hosts = Sprites.HOSTS,
         user_agent = "CatchInk/" .. tostring(self.meta.version),
     }
     self.downloader:reset_work_dir()
@@ -145,6 +147,8 @@ local VIEWS = {
     sprites = "catchink/ui/views/sprites",
     about = "catchink/ui/views/about",
     pick_games = "catchink/ui/views/pick_games",
+    type_chart = "catchink/ui/views/type_chart",
+    type_summary = "catchink/ui/views/type_summary",
 }
 
 function Screen:make(name, args)
@@ -562,10 +566,29 @@ function Screen:entry_name(entry)
     return name
 end
 
-function Screen:entry_info(entry)
+-- The type charts, read when first needed.
+function Screen:type_charts()
+    if not self.types_info then
+        self.types_info = Types.new(self.data:type_charts())
+    end
+    return self.types_info
+end
+
+-- The generation of a game, or nil for the national view (the newest type chart).
+function Screen:game_gen(game_id)
+    local game = game_id and game_id ~= Games.HOME and Games.get(game_id)
+    return game and game.gen or nil
+end
+
+-- The types of an entry in a game: the ones it had there (Clefairy was Normal up to the 5th generation).
+function Screen:entry_types(entry, game_id)
+    return self:type_charts():of_pokemon(Dex.pokemon_id(self.data, entry), self:game_gen(game_id), Dex.types(self.data, entry))
+end
+
+function Screen:entry_info(entry, game_id)
     return {
         name = self:entry_name(entry),
-        types = Dex.types(self.data, entry),
+        types = self:entry_types(entry, game_id),
         gen = self.data:generation(entry.species),
     }
 end

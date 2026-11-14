@@ -7,6 +7,8 @@ local Sprites = {}
 Sprites.__index = Sprites
 
 local BASE_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/"
+-- The only server the downloads may reach.
+Sprites.HOSTS = { "raw.githubusercontent.com" }
 
 local function quote(text)
     return "'" .. tostring(text):gsub("'", "'\\''") .. "'"

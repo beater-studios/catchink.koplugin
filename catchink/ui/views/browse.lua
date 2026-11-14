@@ -50,7 +50,7 @@ function Browse:entries()
     local signature = table.concat({ Filters.signature(f), self.query or "", app.lang, tostring(#all),
         f.status ~= "all" and tostring(app:caps_version(self.profile)) or "" }, "#")
     if self.cached_signature ~= signature or self.cached_all ~= all then
-        self.cached_list = Filters.apply(all, f, function(e) return app:entry_info(e) end, app:state_fn(self.profile, self.game), app.data, self.query)
+        self.cached_list = Filters.apply(all, f, function(e) return app:entry_info(e, self.game) end, app:state_fn(self.profile, self.game), app.data, self.query)
         self.cached_signature, self.cached_all = signature, all
     end
     return self.cached_list
@@ -130,7 +130,7 @@ function Browse:chips()
         chips[#chips + 1] = { text = string.format(t.generation, g), remove = function() f.gens[g] = nil end }
     end
     for i, ty in ipairs(f.types) do
-        chips[#chips + 1] = { text = self.app.text:type_name(ty), remove = function() table.remove(f.types, i) end }
+        chips[#chips + 1] = { text = self.app.text:type_name(ty), type_id = ty, remove = function() table.remove(f.types, i) end }
     end
     if f.status ~= "all" then
         chips[#chips + 1] = { text = t.statuses[f.status], remove = function() f.status = "all" end }
@@ -153,11 +153,15 @@ function Browse:draw_chips(ctx, y)
     local clear_w = s(80)
     for _, c in ipairs(chips) do
         local label = c.text .. "  ×"
-        local w = Look.pill_width(label, s(12.5), s(10))
+        local w = c.type_id and Look.type_pill_width(label, s(12.5), s(10)) or Look.pill_width(label, s(12.5), s(10))
         if x + w > W - clear_w then
             break
         end
-        Look.pill(bb, x, y + s(9), label, "filled", s(12.5), s(24), s(10))
+        if c.type_id then
+            Look.type_pill(bb, x, y + s(9), c.type_id, label, "filled", s(12.5), s(24), s(10))
+        else
+            Look.pill(bb, x, y + s(9), label, "filled", s(12.5), s(24), s(10))
+        end
         ctx:hit(x, y, w, s(42), function()
             c.remove()
             self.page = 1
@@ -292,11 +296,7 @@ function Browse:draw_row(ctx, e, y, W, list, index, state_of)
     if app.data:has_flag(e.species, Data.LEGENDARY) or app.data:has_flag(e.species, Data.MYTHICAL) then
         Draw.icon(bb, "star", nx + nw + s(12), y + s(35), s(13))
     end
-    local names = {}
-    for i, ty in ipairs(app:entry_info(e).types) do
-        names[i] = app.text:type_name(ty)
-    end
-    Look.type_pills(bb, s(285), y + s(16), names)
+    Look.type_pills(bb, s(285), y + s(16), app:entry_info(e, self.game).types, app.text)
     Look.mark_for(self.profile, bb, state, W - s(34), y + rh / 2, s(12), true)
     ctx:hit(0, y, W, rh, function() app:toggle(self.profile, self.game, e) end, function() self:open_card(list, index) end)
 end

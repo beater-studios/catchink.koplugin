@@ -140,7 +140,7 @@ end
 clean()
 local screen = open()
 local main = sample(screen)
-local CARDS = { { "red-blue", 25 }, { "scarlet-violet", 1 }, { "home", 133 }, { "legends-arceus", 1 } }
+local CARDS = { { "red-blue", 25 }, { "scarlet-violet", 1 }, { "home", 133 }, { "legends-arceus", 1 }, { "x-y", 6 }, { "red-blue", 94 } }
 for _, lang in ipairs({ "en", "pt", "es" }) do
     screen:set_language(lang)
     local function view(name, kind, args)
@@ -173,9 +173,18 @@ for _, lang in ipairs({ "en", "pt", "es" }) do
                 break
             end
         end
-        for tab = 1, 6 do
+        for tab = 1, 7 do
             view(string.format("card_%s_%d_tab%d", c[1], c[2], tab), "card", { profile = main, game = c[1], list = list, index = index, tab = tab })
         end
+    end
+    -- The type chart of each generation, plain and with a type highlighted, and the summary of a type.
+    for _, gen in ipairs({ 1, 2, 9 }) do
+        view("type_chart_gen" .. gen, "type_chart", { gen = gen })
+        local chart = screen:show("type_chart", { gen = gen })
+        chart.selected = 7
+        check_view(screen, "type_chart_gen" .. gen .. "_bug_" .. lang)
+        screen:back_to("home")
+        view("type_summary_gen" .. gen, "type_summary", { index = screen:type_charts():chart_index(gen), type = 7 })
     end
     view("progress", "progress", { profile = main })
     view("sprites", "sprites", { profile = main })

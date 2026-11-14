@@ -7,7 +7,7 @@ require("setupkoenv")
 package.path = plugin_dir .. "/?.lua;" .. package.path
 
 local Data = require("catchink/data")
-local Downloader = require("catchink/net/downloader")
+local Downloader = require("catchink/download")
 local SpriteSets = require("catchink/sprite_sets")
 local Sprites = require("catchink/sprites")
 local ffiutil = require("ffi/util")
@@ -16,7 +16,7 @@ local home = os.getenv("CATCHINK_HOME") or (os.getenv("OUTPUT_DIR") .. "/home")
 os.execute("mkdir -p '" .. home .. "'")
 local data = Data.new(plugin_dir .. "/data")
 local sprites = Sprites.new{ dir = home .. "/sprites", manifest = data:sprites(), data = data }
-local downloader = Downloader.new{ work_dir = home .. "/work" }
+local downloader = Downloader.new{ work_dir = home .. "/work", hosts = Sprites.HOSTS }
 
 local wanted = os.getenv("SETS") or "red-blue@normal"
 local failures = 0
@@ -46,8 +46,8 @@ for item in wanted:gmatch("%S+") do
     end
 end
 -- A host outside the list is refused by the worker.
-local Worker = require("catchink/net/worker")
-assert(not Worker.allowed("https://example.com/x.png"), "only raw.githubusercontent.com is allowed")
-assert(Worker.allowed("https://raw.githubusercontent.com/PokeAPI/sprites/x.png"))
+local Worker = require("catchink/download_worker")
+assert(not Worker.allowed("https://example.com/x.png", Sprites.HOSTS), "only raw.githubusercontent.com is allowed")
+assert(Worker.allowed("https://raw.githubusercontent.com/PokeAPI/sprites/x.png", Sprites.HOSTS))
 print(failures == 0 and "downloads ok" or (failures .. " sets incomplete"))
 os.exit(failures == 0 and 0 or 1)

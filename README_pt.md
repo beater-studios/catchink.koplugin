@@ -41,7 +41,8 @@ Marque os Pokémon que você pegou em cada jogo, numa tela que fica horas ao lad
 - **Perfis:** quantas Pokédex você quiser, a partir de um modelo: normal, shiny, alfa (os Legends), Living Dex (formas e gêneros) ou do seu jeito, escolhendo sprites, modo de gênero, formas e jogos.
 - **Caixas de 30 e lista:** um toque marca ou desmarca, com desfazer; segurar abre a ficha. O que falta aparece como silhueta. Também dá para marcar visto e indisponível (shiny bloqueado, só de evento), e os indisponíveis saem do total.
 - **Filtros e busca:** geração, até dois tipos, capturados, faltando, vistos ou indisponíveis, lendário, mítico, bebê ou com formas, por nome ou número, em ordem de número regional, nacional ou nome.
-- **A ficha,** em seis páginas: geral (sprite, categoria, tipos, tamanho, a descrição do jogo, situação, data da captura e nota), status (status base, habilidades, captura e criação, gênero), evolução (a cadeia com cada condição e marcar a linha inteira), formas (normal e shiny), no jogo (onde encontrar e golpes por nível) e no perfil (em quais jogos você já tem).
+- **A ficha,** em sete páginas: geral (sprite, categoria, tipos, tamanho, a descrição do jogo, situação, data da captura e nota), status (status base, habilidades, captura e criação, gênero), evolução (a cadeia com cada condição e marcar a linha inteira), formas (normal e shiny), no jogo (onde encontrar e golpes por nível) no perfil (em quais jogos você já tem) e tipos (a que ele é fraco e o que resiste, e o que os golpes dele fazem, na tabela da geração do jogo).
+- **Tabela de tipos:** a tabela completa de cada geração (a 1ª, da 2ª à 5ª, da 6ª em diante), com o resumo de cada tipo, e um ícone para cada tipo em todo lugar onde aparece um tipo.
 - **Progresso** por geração e por jogo, com os últimos 7 dias.
 - **Sprites:** três pacotes trazem o conjunto base, o base com shiny ou nenhuma sprite; as sprites de cada jogo (ícones de caixa de Sun / Moon em diante) são baixadas no aparelho. Um jogo sem o seu conjunto usa o base e avisa uma vez por visita.
 - **Três idiomas:** português, inglês e espanhol. Golpes, habilidades e lugares ficam com os nomes oficiais em inglês na interface em português.
@@ -91,7 +92,7 @@ As verificações no KOReader de computador, as ferramentas que geram os dados e
 
 ## Créditos
 
-Dados: [PokeAPI](https://pokeapi.co/), [PKHeX](https://github.com/kwsch/PKHeX) para os encontros dos jogos mais novos e as formas de cada jogo, e [Serebii.net](https://www.serebii.net/pokearth/sinnoh/) para as chances de encontro de Brilliant Diamond e Shining Pearl. Sprites: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (o conjunto base vem no plugin, os outros são baixados no seu aparelho). Textos em português traduzidos pela Beater Studios.
+Dados: [PokeAPI](https://pokeapi.co/), [PKHeX](https://github.com/kwsch/PKHeX) para os encontros dos jogos mais novos e as formas de cada jogo, e [Serebii.net](https://www.serebii.net/pokearth/sinnoh/) para as chances de encontro de Brilliant Diamond e Shining Pearl. Sprites: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (o conjunto base vem no plugin, os outros são baixados no seu aparelho). Ícones dos tipos: [partywhale/pokemon-type-icons](https://github.com/partywhale/pokemon-type-icons) (MIT). Textos em português traduzidos pela Beater Studios.
 
 ## Licença
 

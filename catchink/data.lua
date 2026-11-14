@@ -168,4 +168,12 @@ function Data:chain_members(id)
     return members
 end
 
+-- The type charts (data/types.lua), loaded when first needed.
+function Data:type_charts()
+    if not self.type_table then
+        self.type_table = assert(load_table(self.dir .. "/types.lua"))
+    end
+    return self.type_table
+end
+
 return Data

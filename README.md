@@ -41,7 +41,8 @@ Mark the Pokémon you caught in each game, on a screen that sits next to the con
 - **Profiles:** as many Pokédex as you want, from a model: normal, shiny, alpha (the Legends games), Living Dex (forms and genders) or your own choice of sprites, gender mode, forms and games.
 - **Boxes of 30 and a list:** a tap marks or clears, with undo; a hold opens the card. Missing Pokémon show as silhouettes. Seen and unavailable (shiny locked, event only) are marked too, and unavailable ones leave the total.
 - **Filters and search:** generation, up to two types, caught, missing, seen or unavailable, legendary, mythical, baby or with forms, by name or number, ordered by regional number, national number or name.
-- **The card,** in six pages: overview (sprite, genus, types, size, the game's Pokédex text, status, catch date and a note), stats (base stats, abilities, catching and breeding, gender), evolution (the chain with each condition, and marking the whole line), forms (normal and shiny), in the game (where to find it and level-up moves) and in the profile (which games already have it).
+- **The card,** in seven pages: overview (sprite, genus, types, size, the game's Pokédex text, status, catch date and a note), stats (base stats, abilities, catching and breeding, gender), evolution (the chain with each condition, and marking the whole line), forms (normal and shiny), in the game (where to find it and level-up moves) in the profile (which games already have it) and types (what it is weak to and resists, and what its moves do, in the type chart of the game's generation).
+- **Type chart:** the full chart of each generation (the 1st, the 2nd to the 5th, the 6th onwards), with the summary of each type, and an icon for every type wherever a type shows.
 - **Progress** by generation and by game, with the last 7 days.
 - **Sprites:** three packages bring the base set, the base set with shiny, or no sprites; each game's own sprites (box icons from Sun / Moon on) are downloaded on the device. A game without its set uses the base and says so once per visit.
 - **Three languages:** Portuguese, English and Spanish. Moves, abilities and places keep their official English names in Portuguese.
@@ -101,7 +102,7 @@ The data comes from `tools/build_data.py`, with the sources from `tools/fetch_so
 
 ## Credits
 
-Data: [PokeAPI](https://pokeapi.co/), [PKHeX](https://github.com/kwsch/PKHeX) for the encounters of the newer games and the forms of each game, and [Serebii.net](https://www.serebii.net/pokearth/sinnoh/) for the encounter chances of Brilliant Diamond and Shining Pearl. Sprites: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (the base set comes with the plugin, the others are downloaded to your device). Portuguese texts translated by Beater Studios.
+Data: [PokeAPI](https://pokeapi.co/), [PKHeX](https://github.com/kwsch/PKHeX) for the encounters of the newer games and the forms of each game, and [Serebii.net](https://www.serebii.net/pokearth/sinnoh/) for the encounter chances of Brilliant Diamond and Shining Pearl. Sprites: [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (the base set comes with the plugin, the others are downloaded to your device). Type icons: [partywhale/pokemon-type-icons](https://github.com/partywhale/pokemon-type-icons) (MIT). Portuguese texts translated by Beater Studios.
 
 ## License
 

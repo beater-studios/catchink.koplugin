@@ -1,8 +1,20 @@
--- Downloads sprite sets in the background, one child process at a time, and reports the progress.
+-- Pattern "download". This file is copied unchanged into every plugin that downloads files in the background, as
+-- <id>/download.lua: change the pattern first, then copy it again.
+--
+-- Downloads lists of files in the background, a job at a time, each split among a few child processes, and reports
+-- the progress, so the screen never waits for the network. A file arrives as <path>.part and gets its name only when
+-- complete, so a job cut short (the plugin closed, the Wi-Fi gone) resumes later with only the files still missing.
+-- Each child goes through the HTTPS pattern (<id>/https_request.lua), only to the hosts given.
+local MODULE = ...
+assert(type(MODULE) == "string", "download: load it with require")
+local ID = MODULE:match("^(.*)/[^/]+$")
+local PLUGIN_DIR = debug.getinfo(1, "S").source:gsub("^@", ""):gsub("/[^/]+/[^/]+$", "")
+
 local Downloader = {}
 Downloader.__index = Downloader
 
-local PLUGIN_DIR = debug.getinfo(1, "S").source:gsub("^@", ""):gsub("/catchink/net/downloader%.lua$", "")
+-- Each job is split among a few child processes: the time goes into opening connections, not into the CPU.
+Downloader.PARTS = 3
 
 local function quote(text)
     return "'" .. tostring(text):gsub("'", "'\\''") .. "'"
@@ -22,14 +34,19 @@ local function is_macos()
     return jit and jit.os == "OSX"
 end
 
--- opts: work_dir (private folder for the list and progress files), ca_file, user_agent, and for the tests
--- spawn(list, progress), is_done(pid), kill(pid).
+-- opts: work_dir (a private folder for the lists and progress files), hosts (the hosts files may come from, as
+-- { "example.org" }), user_agent, ca_file (KOReader's certificates by default), parts, wait_429 (seconds to wait
+-- after a 429 before trying again), and for the tests spawn(list, progress, job), is_done(pid, wait), kill(pid).
 function Downloader.new(opts)
+    assert(opts.work_dir, "download: work_dir")
+    assert(type(opts.hosts) == "table" and #opts.hosts > 0, "download: hosts")
     return setmetatable({
         work_dir = opts.work_dir,
-        -- KOReader's own list of trusted certificates, relative to its folder (Request.CA_FILE).
+        hosts = opts.hosts,
         ca_file = opts.ca_file or "data/ca-bundle.crt",
-        user_agent = opts.user_agent or "CatchInk",
+        user_agent = opts.user_agent or ID,
+        parts = opts.parts or Downloader.PARTS,
+        wait_429 = opts.wait_429,
         spawn = opts.spawn,
         is_done = opts.is_done,
         kill = opts.kill,
@@ -38,30 +55,43 @@ function Downloader.new(opts)
     }, Downloader)
 end
 
--- When the screen opens: the work folder, private to the user, without the lists and progress files that a
--- crash during a download may have left. The files downloaded so far are elsewhere and stay.
+-- When the screen opens: the work folder, private to the user, without the lists and progress files a crash during
+-- a download may have left. The files downloaded so far are elsewhere and stay.
 function Downloader:reset_work_dir()
     os.execute("rm -rf " .. quote(self.work_dir) .. " && mkdir -p " .. quote(self.work_dir) .. " && chmod 700 " .. quote(self.work_dir))
 end
 
-function Downloader:spawn_process(list_path, progress_path)
+function Downloader:spawn_process(list_path, progress_path, job)
     if self.spawn then
-        return self.spawn(list_path, progress_path)
+        return self.spawn(list_path, progress_path, job)
     end
+    local settings = { list = list_path, progress = progress_path, ca_file = self.ca_file, user_agent = self.user_agent,
+        hosts = self.hosts, headers = job.headers or {}, wait_429 = self.wait_429 }
     if is_macos() then
+        -- A program of its own, as a forked child cannot use the network there. Its settings, headers included, go
+        -- in a file only the user can read, which the program deletes as soon as it reads it.
+        local settings_path = progress_path .. ".settings"
+        local file = io.open(settings_path, "wb")
+        if not file then
+            return nil
+        end
+        file:close()
+        os.execute("chmod 600 " .. quote(settings_path))
+        file = io.open(settings_path, "wb")
+        file:write(require("rapidjson").encode(settings))
+        file:close()
         local pid_path = progress_path .. ".pid"
-        os.execute(string.format("./luajit %s %s %s %s %s %s >/dev/null 2>&1 & echo $! > %s",
-            quote(PLUGIN_DIR .. "/catchink/net/worker_main.lua"), quote(PLUGIN_DIR), quote(list_path), quote(progress_path),
-            quote(self.ca_file), quote(self.user_agent), quote(pid_path)))
+        os.execute(string.format("./luajit %s %s %s >/dev/null 2>&1 & echo $! > %s",
+            quote(PLUGIN_DIR .. "/" .. ID .. "/download_main.lua"), quote(PLUGIN_DIR), quote(settings_path), quote(pid_path)))
         local pid = tonumber(read_file(pid_path) or "")
         os.remove(pid_path)
         return pid
     end
+    -- On the device the child is a fork: the settings, headers included, stay in its memory and never touch a file.
     local util = require("ffi/util")
-    local Worker = require("catchink/net/worker")
-    local ca_file, user_agent = self.ca_file, self.user_agent
+    local Worker = require(ID .. "/download_worker")
     return util.runInSubProcess(function()
-        Worker.run(list_path, progress_path, ca_file, user_agent)
+        Worker.run(settings)
     end)
 end
 
@@ -104,7 +134,8 @@ function Downloader:kill_process(pid)
     require("ffi/util").terminateSubProcess(pid)
 end
 
--- job: { id, files = { { url, path } }, on_done(done, failed, total) }. Jobs run one after the other.
+-- job: { id, files = { { url, path } }, headers = { name = value } for every file, on_done(done, failed, total,
+-- cancelled, stopped) }. Jobs run one after the other; a job already queued or running is not added again.
 function Downloader:add(job)
     for _, j in ipairs(self.queue) do
         if j.id == job.id then
@@ -117,6 +148,7 @@ function Downloader:add(job)
     self.queue[#self.queue + 1] = job
 end
 
+-- "running", "queued" or nil.
 function Downloader:busy_with(id)
     if self.current and self.current.id == id then
         return "running"
@@ -138,13 +170,10 @@ function Downloader:busy()
     return self:active() or #(self.unreaped or {}) > 0
 end
 
--- Each job is split among a few child processes: the time goes into opening connections, not into the CPU.
-local PARTS = 3
-
 function Downloader:launch(job)
     os.execute("mkdir -p " .. quote(self.work_dir) .. " && chmod 700 " .. quote(self.work_dir))
     local base = self.work_dir .. "/" .. job.id:gsub("[^%w%-]", "_")
-    local count = math.max(1, math.min(PARTS, #job.files))
+    local count = math.max(1, math.min(self.parts, #job.files))
     job.parts = {}
     for p = 1, count do
         local part = { list_path = base .. "." .. p .. ".list", progress_path = base .. "." .. p .. ".progress" }
@@ -159,7 +188,7 @@ function Downloader:launch(job)
             file:write(f[1], "\t", f[2], "\n")
         end
         file:close()
-        part.pid = self:spawn_process(part.list_path, part.progress_path)
+        part.pid = self:spawn_process(part.list_path, part.progress_path, job)
         job.parts[p] = part
     end
     job.done, job.failed, job.total = 0, 0, #job.files
@@ -201,6 +230,7 @@ function Downloader:finish(job)
         os.remove(part.list_path)
         os.remove(part.progress_path)
         os.remove(part.progress_path .. ".stop")
+        os.remove(part.progress_path .. ".settings")
     end
     if job.on_done then
         job.on_done(job.done or 0, job.failed or 0, job.total or #job.files, job.cancelled, job.stopped)
@@ -240,6 +270,7 @@ function Downloader:tick()
     return self:busy()
 end
 
+-- done, total, failed of the running job, or nil.
 function Downloader:progress(id)
     local job = self.current
     if job and job.id == id then
@@ -273,12 +304,12 @@ function Downloader:cancel(id)
     end
 end
 
+-- When the screen closes: everything stops, and every child is waited for, so none is left behind.
 function Downloader:stop()
     self.queue = {}
     if self.current then
         self:cancel(self.current.id)
     end
-    -- Killed children end at once: wait for each, so none is left behind when the plugin closes.
     for _, pid in ipairs(self.unreaped or {}) do
         self:process_done(pid, true)
     end

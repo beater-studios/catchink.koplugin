@@ -53,6 +53,11 @@ local VIEWS = {
     { "progress", function(s, p) s:show("progress", { profile = p }) end },
     { "sprites", function(s, p) s:show("sprites", { profile = p }) end },
     { "about", function(s, p) s:show("about", { profile = p }) end },
+    { "type chart", function(s) s:show("type_chart", {}) end },
+    { "card types", function(s, p)
+        local list = s:entries(p, "red-blue")
+        s:show("card", { profile = p, game = "red-blue", list = list, index = 6, tab = 7 })
+    end },
 }
 
 local first = fresh("en")

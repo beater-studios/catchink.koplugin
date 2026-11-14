@@ -2,6 +2,7 @@
 local Draw = require("catchink/ui/draw")
 local Filters = require("catchink/filters")
 local Look = require("catchink/ui/look")
+local Types = require("catchink/types")
 
 local s = Draw.s
 local FiltersView = {}
@@ -57,9 +58,10 @@ function FiltersView:draw(ctx)
         changed()
     end) + s(14)
     Look.label(bb, s(20), y - s(8), w, t.filter_type)
-    local type_names = {}
+    local type_names, type_icons = {}, {}
     for i, id in ipairs(TYPE_ORDER) do
         type_names[i] = app.text:type_name(id)
+        type_icons[i] = Types.icon(id)
     end
     y = Look.chips(ctx, x, y + s(12), w, type_names, function(i)
         local id = TYPE_ORDER[i]
@@ -77,7 +79,7 @@ function FiltersView:draw(ctx)
         end
         f.types[#f.types + 1] = id
         changed()
-    end) + s(14)
+    end, nil, type_icons) + s(14)
     Look.label(bb, s(20), y - s(8), w, t.filter_status)
     local status_names = {}
     for i, st in ipairs(STATUSES) do

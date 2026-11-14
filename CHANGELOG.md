@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0]
+
+- Sprite sets download about five times faster on the Kindle: each part of a download keeps one connection open for all its files and reads the list of trusted certificates once, instead of doing both for every file. Black / White went from 224 s to 41 s.
+- The card has a seventh page, Types: what the Pokémon is weak to and resists, and what the moves of its types do, in the type chart of the game's generation and with the types it had in that game (Clefairy is Normal in the older games).
+- A full type chart for each generation (the 1st, the 2nd to the 5th, the 6th onwards), opened from the card or from the menu of the home screen, with the summary of each type.
+- Every type has its icon, on the card, the list, the moves, the filters and the chart.
+- The list, the card and the type filter of a game show the types the Pokémon had in that game.
+
 ## [0.1.0]
 
 First version.

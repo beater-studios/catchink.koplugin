@@ -1,19 +1,15 @@
 -- The look of CatchInk: header band, bottom bar, pills, cards, marks, bars, toggles and buttons.
 -- Measures are designed for a 600 x 800 screen and scaled with Draw.s.
 local Draw = require("catchink/ui/draw")
+local Letters = require("catchink/letters")
+local Types = require("catchink/types")
 
 local s = Draw.s
 local Look = {}
 
-local UPPER = {
-    ["á"] = "Á", ["à"] = "À", ["â"] = "Â", ["ã"] = "Ã", ["ä"] = "Ä", ["é"] = "É", ["è"] = "È", ["ê"] = "Ê", ["ë"] = "Ë",
-    ["í"] = "Í", ["ì"] = "Ì", ["î"] = "Î", ["ï"] = "Ï", ["ó"] = "Ó", ["ò"] = "Ò", ["ô"] = "Ô", ["õ"] = "Õ", ["ö"] = "Ö",
-    ["ú"] = "Ú", ["ù"] = "Ù", ["û"] = "Û", ["ü"] = "Ü", ["ç"] = "Ç", ["ñ"] = "Ñ",
-}
-
 -- Upper case that also turns accented letters (Lua's own only knows ASCII).
 function Look.upper(text)
-    return (text:upper():gsub("\195[\160-\191]", function(ch) return UPPER[ch] or ch end))
+    return Letters.upper(text)
 end
 
 Look.HEADER_H = 58
@@ -121,11 +117,81 @@ function Look.pill_width(text, px, pad)
     return Draw.text_width(text, Draw.face("bold", px or s(12.5))) + (pad or s(10)) * 2
 end
 
-function Look.type_pills(bb, x, y, names, px, h)
-    for _, name in ipairs(names) do
-        x = Look.pill(bb, x, y, name, "filled", px or s(12), h or s(20), s(8)) + s(5)
+-- The icon of a type inside a label, a little larger than the letters.
+local function type_icon_size(px)
+    return math.floor(px * 1.2 + 0.5)
+end
+
+function Look.type_pill_width(text, px, pad)
+    px = px or s(12.5)
+    return Look.pill_width(text, px, pad) + type_icon_size(px) + s(4)
+end
+
+-- A label of a type: its icon before the text, in the color of the text. style as Look.pill. Returns its right edge.
+function Look.type_pill(bb, x, y, type_id, text, style, px, h, pad, anchor)
+    px, h, pad = px or s(12.5), h or s(22), pad or s(10)
+    local size = type_icon_size(px)
+    local w = Look.type_pill_width(text, px, pad)
+    if anchor == "right" then
+        x = x - w
+    end
+    local fg = Draw.WHITE
+    if style == "outline" then
+        Draw.rect(bb, x, y, w, h, Draw.WHITE, h / 2)
+        Draw.border(bb, x, y, w, h, math.max(1, s(1.5)), Draw.BLACK, h / 2)
+        fg = Draw.BLACK
+    elseif style == "light" then
+        Draw.rect(bb, x, y, w, h, Draw.PAPER, h / 2)
+        Draw.border(bb, x, y, w, h, math.max(1, s(1.2)), Draw.MID, h / 2)
+        fg = Draw.BLACK
+    else
+        Draw.rect(bb, x, y, w, h, Draw.DARK, h / 2)
+    end
+    Draw.icon(bb, Types.icon(type_id), x + pad - s(2) + size / 2, y + h / 2, size, fg)
+    Draw.text(bb, text, Draw.face("bold", px), x + pad + size + s(2), y, w - pad * 2 - size - s(2), h, "left", fg)
+    return x + w, x
+end
+
+-- The labels of a Pokémon's types, side by side. text: the Text of the screen, for the names.
+function Look.type_pills(bb, x, y, types, text, px, h)
+    for _, id in ipairs(types) do
+        x = Look.type_pill(bb, x, y, id, text:type_name(id), "filled", px or s(12), h or s(20), s(8)) + s(5)
     end
     return x
+end
+
+-- Labels of types that wrap inside a width. Returns the y below them.
+function Look.type_pill_rows(bb, types, text, style, x, y, w, line_h)
+    local px, h, pad = s(12.5), s(22), s(9)
+    local cx = x
+    for _, id in ipairs(types) do
+        local name = text:type_name(id)
+        local pw = Look.type_pill_width(name, px, pad)
+        if cx + pw > x + w and cx > x then
+            cx, y = x, y + line_h
+        end
+        cx = Look.type_pill(bb, cx, y, id, name, style, px, h, pad) + s(6)
+    end
+    return y + line_h
+end
+
+-- How many lines type_pill_rows takes.
+function Look.type_pill_lines(types, text, w)
+    local n, cx = 1, 0
+    for _, id in ipairs(types) do
+        local pw = Look.type_pill_width(text:type_name(id), s(12.5), s(9)) + s(6)
+        if cx + pw > w and cx > 0 then
+            n, cx = n + 1, 0
+        end
+        cx = cx + pw
+    end
+    return n
+end
+
+-- A type as a dark disc with its white icon, as on the games' own labels.
+function Look.type_disc(bb, type_id, cx, cy, d)
+    Draw.circle(bb, cx, cy, d / 2, Draw.INK)
+    Draw.icon(bb, Types.icon(type_id), cx, cy, math.floor(d * 0.62 + 0.5), Draw.WHITE)
 end
 
 function Look.progress(bb, x, y, w, frac, h, fill)
@@ -268,7 +334,8 @@ function Look.segmented(ctx, x, y, w, labels, active, on_tap, h, px)
 end
 
 -- A grid of chips. on: set of labels or indexes that are selected. Returns the y below it.
-function Look.chips(ctx, x, y, w, labels, is_on, cols, on_tap, h)
+-- icons: optional, the icon of each label, drawn before it.
+function Look.chips(ctx, x, y, w, labels, is_on, cols, on_tap, h, icons)
     local bb = ctx.bb
     h = h or s(32)
     local gap = s(6)
@@ -281,7 +348,17 @@ function Look.chips(ctx, x, y, w, labels, is_on, cols, on_tap, h)
         if not on then
             Draw.rect(bb, cx + s(1.5), cy + s(1.5), cw - s(3), h - s(3), Draw.WHITE, s(6))
         end
-        Draw.text(bb, label, Draw.face(on and "bold" or "sans", s(12.5)), cx + s(2), cy, cw - s(4), h, "center", on and Draw.WHITE or Draw.BLACK)
+        local face = Draw.face(on and "bold" or "sans", s(12.5))
+        local color = on and Draw.WHITE or Draw.BLACK
+        if icons and icons[i] then
+            local size = s(15)
+            local tw = math.min(Draw.text_width(label, face), cw - size - s(12))
+            local left = cx + (cw - size - s(5) - tw) / 2
+            Draw.icon(bb, icons[i], left + size / 2, cy + h / 2, size, color)
+            Draw.text(bb, label, face, left + size + s(5), cy, tw + s(2), h, "left", color)
+        else
+            Draw.text(bb, label, face, cx + s(2), cy, cw - s(4), h, "center", color)
+        end
         ctx:hit(cx, cy, cw, h, function() on_tap(i) end)
     end
     return y + math.ceil(#labels / cols) * (h + gap)

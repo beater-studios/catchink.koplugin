@@ -1,4 +1,4 @@
--- The card of a Pokémon, in six pages: overview, stats, evolution, forms, in the game and in the profile.
+-- The card of a Pokémon, in seven pages: overview, stats, evolution, forms, in the game, in the profile and types.
 -- Swipes and the arrows in the header move along the list it was opened from.
 local Dex = require("catchink/dex")
 local Draw = require("catchink/ui/draw")
@@ -136,11 +136,7 @@ function Card:page_overview(ctx, top, bottom)
     local name_face = Draw.face("serif", s(24))
     Draw.text(bb, app:entry_name(e), name_face, x, y + s(4), W - x - s(16), s(34), "left")
     Draw.text(bb, app.text:genus(d), Draw.face("italic", s(15)), x, y + s(38), W - x - s(16), s(22), "left", Draw.DARK)
-    local names = {}
-    for i, ty in ipairs(Dex.types(app.data, e)) do
-        names[i] = app.text:type_name(ty)
-    end
-    Look.type_pills(bb, x, y + s(66), names, s(13), s(24))
+    Look.type_pills(bb, x, y + s(66), app:entry_types(e, self.game), app.text, s(13), s(24))
     if e.gender then
         Draw.icon(bb, e.gender == "f" and "female" or "male", W - s(34), y + s(78), s(20))
     end
@@ -699,7 +695,7 @@ function Card:page_in_game(ctx, top, bottom)
         Draw.text(bb, app.text:move(mid), Draw.face("sans", s(15)), s(100), my, W - s(240), row, "left")
         local mt = data_moves[mid] and data_moves[mid][3]
         if mt and mt > 0 then
-            Look.pill(bb, W - s(32), my + s(6), app.text:type_name(mt), "filled", s(11.5), s(22), s(9), "right")
+            Look.type_pill(bb, W - s(32), my + s(6), mt, app.text:type_name(mt), "filled", s(11.5), s(22), s(9), "right")
         end
         my = my + row
     end
@@ -818,7 +814,74 @@ function Card:page_profile(ctx, top, bottom)
     end
 end
 
-local PAGES = { "page_overview", "page_stats", "page_evolution", "page_forms", "page_in_game", "page_profile" }
+---------------------------------------------------------------------------
+-- 7. Types.
+---------------------------------------------------------------------------
+
+local STYLE = { [400] = "filled", [200] = "filled", [50] = "outline", [25] = "outline", [0] = "light" }
+local FACTOR = { [400] = "×4", [200] = "×2", [50] = "×½", [25] = "×¼", [0] = "×0" }
+
+-- What the Pokémon takes from each type and what the moves of its types do, in the chart of the card's game (the
+-- newest from the national view), with the types it had in that game.
+function Card:page_types(ctx, top, bottom)
+    local app, t, bb, W = self.app, self.app.t, ctx.bb, ctx.w
+    local charts = app:type_charts()
+    local index = charts:chart_index(app:game_gen(self.game))
+    local chart = charts:chart(index)
+    local types = app:entry_types(self.entry, self.game)
+    local place = self:in_game() and Games.name(Games.get(self.game), app.lang) or t.national
+    local y = top + s(14)
+    Draw.text(bb, string.format(t.types_chart_of, place, app.text:type_chart_gens(chart, charts.last_gen)), Draw.face("sans", s(13)), s(20), y, W - s(40), s(18), "left", Draw.DARK)
+    y = y + s(30)
+    local inner_w = W - s(32) - s(96)
+    local groups = charts:defense(index, types)
+    local height = s(50)
+    for _, g in ipairs(groups) do
+        height = height + Look.type_pill_lines(g.types, app.text, inner_w) * s(30)
+    end
+    Look.card(bb, s(16), y, W - s(32), height, t.types_defense)
+    local yy = y + s(20)
+    for _, g in ipairs(groups) do
+        Draw.text(bb, FACTOR[g.factor], Draw.face("bold", s(17)), s(32), yy, s(60), s(22), "left")
+        yy = Look.type_pill_rows(bb, g.types, app.text, STYLE[g.factor], s(32) + s(64), yy, inner_w, s(30))
+    end
+    Draw.text(bb, t.types_neutral, Draw.face("sans", s(12.5)), s(32), yy + s(2), W - s(64), s(18), "left", Draw.DARK)
+    y = y + height + s(22)
+    local labels = { [200] = t.types_super, [50] = t.types_weak, [0] = t.types_none }
+    local blocks, off_h = {}, s(20)
+    for _, ty in ipairs(types) do
+        local o = charts:offense(index, ty)
+        blocks[#blocks + 1] = { type = ty, groups = o }
+        off_h = off_h + s(40)
+        for _, g in ipairs(o) do
+            off_h = off_h + s(18) + Look.type_pill_lines(g.types, app.text, W - s(64)) * s(28)
+        end
+    end
+    Look.card(bb, s(16), y, W - s(32), off_h, t.types_offense)
+    local oy = y + s(18)
+    for _, b in ipairs(blocks) do
+        Look.type_pills(bb, s(32), oy, { b.type }, app.text, s(13), s(24))
+        oy = oy + s(34)
+        for _, g in ipairs(b.groups) do
+            Look.label(bb, s(32), oy, W - s(64), labels[g.factor])
+            oy = Look.type_pill_rows(bb, g.types, app.text, STYLE[g.factor], s(32), oy + s(18), W - s(64), s(28))
+        end
+        oy = oy + s(6)
+    end
+    y = y + off_h + s(16)
+    local note = index < #charts.charts and t.types_notes[index]
+    if note then
+        y = y + Draw.paragraph(bb, note, Draw.face("sans", s(12.5)), s(20), y, W - s(40), s(17), Draw.DARK) + s(10)
+    end
+    local bh = s(44)
+    local by = math.max(y, bottom - bh - s(14))
+    Look.button(bb, s(16), by, W - s(32), bh, t.types_full_chart, "outline")
+    ctx:hit(s(16), by, W - s(32), bh, function()
+        app:show("type_chart", { gen = app:game_gen(self.game) })
+    end)
+end
+
+local PAGES = { "page_overview", "page_stats", "page_evolution", "page_forms", "page_in_game", "page_profile", "page_types" }
 
 function Card:draw(ctx)
     local app, t = self.app, self.app.t

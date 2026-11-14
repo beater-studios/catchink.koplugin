@@ -2,14 +2,14 @@
 package.path = "./?.lua;" .. package.path
 local Data = require("catchink/data")
 local Dex = require("catchink/dex")
-local Downloader = require("catchink/net/downloader")
+local Downloader = require("catchink/download")
 local Filters = require("catchink/filters")
 local Games = require("catchink/games")
 local Profiles = require("catchink/profiles")
 local SpriteSets = require("catchink/sprite_sets")
 local Sprites = require("catchink/sprites")
 local Text = require("catchink/text")
-local Worker = require("catchink/net/worker")
+local Worker = require("catchink/download_worker")
 
 local passed, failed = 0, 0
 local function test(name, fn)
@@ -439,7 +439,7 @@ test("a download job lists only missing files, at the fixed commit", function()
     eq(#files, 150)
     assert(files[1][1]:find("^https://raw%.githubusercontent%.com/PokeAPI/sprites/" .. data:sprites().commit .. "/sprites/pokemon/versions/generation%-i/red%-blue/transparent/gray/"), files[1][1])
     for _, f in ipairs(files) do
-        assert(Worker.allowed(f[1]), f[1])
+        assert(Worker.allowed(f[1], Sprites.HOSTS), f[1])
     end
 end)
 
@@ -472,6 +472,7 @@ test("the downloader runs jobs in order and reports them", function()
     local spawned, done, reaped = {}, {}, {}
     local downloader = Downloader.new{
         work_dir = tmp,
+        hosts = Sprites.HOSTS,
         spawn = function(list, progress)
             spawned[#spawned + 1] = list
             local count = 0
@@ -511,7 +512,7 @@ test("the worker gives up after many failures in a row", function()
         f:write("https://example.invalid/" .. i .. ".png\t" .. tmp .. "_" .. i .. ".png\n")
     end
     f:close()
-    Worker.run(list, tmp .. ".progress", "none")
+    Worker.run({ list = list, progress = tmp .. ".progress", ca_file = "none", hosts = Sprites.HOSTS })
     local p = io.open(tmp .. ".progress", "rb")
     local text = p:read("*a")
     p:close()
@@ -523,9 +524,9 @@ test("the worker gives up after many failures in a row", function()
 end)
 
 test("the worker refuses other hosts", function()
-    assert(not Worker.allowed("http://raw.githubusercontent.com/a.png"))
-    assert(not Worker.allowed("https://raw.githubusercontent.com.evil.com/a.png"))
-    assert(Worker.allowed("https://raw.githubusercontent.com/a.png"))
+    assert(not Worker.allowed("http://raw.githubusercontent.com/a.png", Sprites.HOSTS))
+    assert(not Worker.allowed("https://raw.githubusercontent.com.evil.com/a.png", Sprites.HOSTS))
+    assert(Worker.allowed("https://raw.githubusercontent.com/a.png", Sprites.HOSTS))
 end)
 
 print(string.format("%d passed, %d failed", passed, failed))

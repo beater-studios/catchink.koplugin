@@ -54,6 +54,19 @@ function Text:type_name(id)
     return self.t.types[id] or "?"
 end
 
+-- The generations of a type chart: "1st generation", "Generations 2 to 5" or "Generation 6 onwards", or the short
+-- forms of the chart's buttons.
+function Text:type_chart_gens(chart, last_gen, short)
+    local t = self.t
+    if chart.from == chart.to and chart.to < last_gen then
+        return string.format(short and t.types_short_one or t.types_gen_one, chart.from)
+    end
+    if chart.to >= last_gen then
+        return string.format(short and t.types_short_from or t.types_gen_from, chart.from)
+    end
+    return string.format(short and t.types_short_range or t.types_gen_range, chart.from, chart.to)
+end
+
 function Text:species(id)
     return self.data:name(id, self.lang)
 end

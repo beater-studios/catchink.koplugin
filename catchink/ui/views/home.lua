@@ -96,6 +96,7 @@ function Home:draw(ctx)
         right = { { icon = "dots", tap = function()
             app:menu(t.name, {
                 { text = t.sprites, callback = function() app:show("sprites") end },
+                { text = t.types_chart, callback = function() app:show("type_chart", {}) end },
                 { text = t.language, callback = function() app:choose_language() end },
                 { text = t.about, callback = function() app:show("about") end },
                 { text = t.exit_app, callback = function() app:close() end },

@@ -304,6 +304,41 @@ def game_forms(d, csv_dir, forms_by_species, pkhex_core):
     return out
 
 
+def build_types(csv_dir, out, last_gen):
+    """The type charts, in percent and only where a type does not do 100%: the chart of today with, for an older
+    generation, the values that held up to it (type_efficacy_past.csv), so equal generations share a chart. Also the
+    types each chart has (types.csv) and the types a Pokémon had up to a generation (pokemon_types_past.csv)."""
+    modern = {}
+    for r in rows(csv_dir, "type_efficacy"):
+        modern.setdefault(int(r["damage_type_id"]), {})[int(r["target_type_id"])] = int(r["damage_factor"])
+    past = [(int(r["damage_type_id"]), int(r["target_type_id"]), int(r["damage_factor"]), int(r["generation_id"]))
+            for r in rows(csv_dir, "type_efficacy_past")]
+    since = {int(r["id"]): int(r["generation_id"]) for r in rows(csv_dir, "types") if int(r["id"]) < 10000 and r["identifier"] != "stellar"}
+    charts, by_gen, keys = [], {}, {}
+    for gen in range(1, last_gen + 1):
+        table = {a: dict(row) for a, row in modern.items() if a in since}
+        for a, t, factor, upto in past:
+            if gen <= upto:
+                table[a][t] = factor
+        present = sorted(t for t, g in since.items() if g <= gen)
+        chart = {a: {t: f for t, f in sorted(table[a].items()) if f != 100 and t in present} for a in present}
+        key = repr((present, sorted((a, sorted(row.items())) for a, row in chart.items())))
+        if key not in keys:
+            charts.append({"from": gen, "to": gen, "types": present, "factors": chart})
+            keys[key] = len(charts)
+        index = keys[key]
+        charts[index - 1]["to"] = gen
+        by_gen[gen] = index
+    types_past = {}
+    for r in rows(csv_dir, "pokemon_types_past"):
+        entry = types_past.setdefault(int(r["pokemon_id"]), {}).setdefault(int(r["generation_id"]), [])
+        entry.append((int(r["slot"]), int(r["type_id"])))
+    past_out = {pid: {g: [t for _, t in sorted(slots)] for g, slots in sorted(gens.items())} for pid, gens in sorted(types_past.items())}
+    write_lua(os.path.join(out, "types.lua"), {"charts": charts, "by_gen": by_gen, "past": past_out},
+              "Type charts in percent (only what is not 100), the chart of each generation and the types Pokémon had up to a generation.")
+    return len(charts)
+
+
 def build(csv_dir, out, pkhex_core=None):
     d = load(csv_dir)
     tr_species = read_json(os.path.join(TRANSLATIONS, "species.json"), {})
@@ -529,6 +564,7 @@ def build(csv_dir, out, pkhex_core=None):
     move_types = {int(r["id"]): int(r["type_id"]) for r in rows(csv_dir, "moves")}
     moves_out = {mid: [n.get(EN, ""), n.get(ES, n.get(EN, "")), move_types.get(mid, 0)] for mid, n in sorted(move_names.items())}
     write_lua(os.path.join(out, "moves.lua"), moves_out, "Move names (English, Spanish) and type.")
+    charts = build_types(csv_dir, out, max(int(r["generation_id"]) for r in rows(csv_dir, "pokemon_species")))
 
     abilities_out = {}
     for aid, n in sorted(names.items()):
@@ -614,7 +650,7 @@ def build(csv_dir, out, pkhex_core=None):
             areas_out[area] = [no_dashes(names[0]), no_dashes(names[1])]
     locations_out = {loc: [no_dashes(loc_names.get(loc, {}).get(EN, "")), no_dashes(loc_names.get(loc, {}).get(ES) or to_es(loc_names.get(loc, {}).get(EN, "")))] for loc in sorted(used_locations)}
     write_lua(os.path.join(out, "places.lua"), {"areas": areas_out, "locations": locations_out}, "Place names (English, Spanish).")
-    print(f"data: {count} species, {len(moves_out)} moves, {len(abilities_out)} abilities, {len(areas_out)} areas")
+    print(f"data: {count} species, {len(moves_out)} moves, {len(abilities_out)} abilities, {len(areas_out)} areas, {charts} type charts")
     missing = [sid for sid in d["species"] if not tr_species.get(str(sid), {}).get("flavor")]
     if missing:
         print(f"warning: {len(missing)} species without a Portuguese text")
