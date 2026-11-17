@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/brand/banner.png" alt="CatchInk: um registrador de Pokédex para e-ink">
+  <img src="docs/brand/banner_pt.png" alt="CatchInk: um registrador de Pokédex para e-ink">
 </p>
 
 <p align="center">
