@@ -60,20 +60,21 @@ end
 -- Redraws the view. mode "full" flashes now, whatever the count. While the device sleeps nothing is drawn
 -- (Sleep.dirty): a timer running on a wakeup of the system would paint the plugin over the sleep screen,
 -- and the device would look awake with the touch blocked. The window is repainted when it wakes up.
+-- The count is read in the function KOReader calls when it paints, so the wait after a flash (Refresh.settle,
+-- inside refresh:mode) comes right before this update, and a redraw asked while asleep counts nothing.
 function Surface:redraw(mode)
     if mode == "full" then
         self.refresh:reset()
     end
-    local refresh = self.refresh:mode(REFRESH_KIND)
     Sleep.dirty(self, function()
-        return refresh, self.dimen
+        return self.refresh:mode(REFRESH_KIND), self.dimen
     end)
 end
 
 -- Redraws what changes on its own, like the progress of a download: without a flash and outside the count.
 function Surface:redraw_progress()
     Sleep.dirty(self, function()
-        return "ui", self.dimen
+        return Refresh.settle("ui"), self.dimen
     end)
 end
 

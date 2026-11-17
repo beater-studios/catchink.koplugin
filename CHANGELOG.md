@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- After a full refresh, the next update waits for it to end, so a tap right after a flash no longer leaves part of the screen white on a Kindle.
+
 ## [0.2.0]
 
 - Sprite sets download about five times faster on the Kindle: each part of a download keeps one connection open for all its files and reads the list of trusted certificates once, instead of doing both for every file. Black / White went from 224 s to 41 s.

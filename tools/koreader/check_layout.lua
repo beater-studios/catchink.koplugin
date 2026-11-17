@@ -259,26 +259,42 @@ end
 UIManager:close(old)
 
 -- Refresh modes: the opening flashes, changes do not until the ninth, the download progress is outside the
--- count, and waking up flashes.
+-- count, a redraw while asleep paints nothing, and waking up flashes.
 clean()
+-- The mode is recorded when KOReader reads it, at the paint, as on the device.
 local modes = {}
 local real_set_dirty = UIManager.setDirty
 UIManager.setDirty = function(manager, widget, refresh, ...)
     if widget and widget.name == "catchink_screen" and refresh then
-        modes[#modes + 1] = type(refresh) == "function" and (refresh()) or refresh
+        if type(refresh) == "function" then
+            local read = refresh
+            refresh = function(...)
+                local mode, region = read(...)
+                modes[#modes + 1] = mode
+                return mode, region
+            end
+        else
+            modes[#modes + 1] = refresh
+        end
     end
     return real_set_dirty(manager, widget, refresh, ...)
 end
 local r = open()
+UIManager:forceRePaint()
 local rp = r:create_profile("R", { model = "normal" })
 r:show("browse", { profile = rp, game = "red-blue" })
+UIManager:forceRePaint()
 r:redraw_progress()
-for _ = 1, 7 do
+UIManager:forceRePaint()
+for _ = 1, 8 do
     r:redraw()
+    UIManager:forceRePaint()
 end
-r:redraw()
 r:handleEvent(Event:new("Suspend"))
+r:redraw()
+UIManager:forceRePaint()
 r:handleEvent(Event:new("Resume"))
+UIManager:forceRePaint()
 UIManager.setDirty = real_set_dirty
 local expected = "full,ui,ui,ui,ui,ui,ui,ui,ui,ui,full,full"
 if table.concat(modes, ",") ~= expected then
