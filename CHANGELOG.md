@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.2.1]
 
 - After a full refresh, the next update waits for it to end, so a tap right after a flash no longer leaves part of the screen white on a Kindle.
 
